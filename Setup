@@ -1,0 +1,67 @@
+sudo apt update
+sudo apt upgrade -y
+
+================================
+
+sudo apt install xserver-xorg lightdm onboard chromium sed
+
+================================
+sudo systemctl --quiet set-default graphical.target
+
+================================
+
+sudo sed /etc/lightdm/lightdm.conf -i -e "s/^\(#\|\)autologin-user=.*/autologin-user=$USER/"
+
+================================
+
+sudo sed /etc/lightdm/lightdm.conf -i -e "s/^\(#\|\)xserver-command=.*/xserver-command=X -s 0 dpms/"
+
+================================
+
+sudo reboot
+
+================================
+
+sudo mkdir -p /opt/kiosk/
+
+================================
+
+#!/bin/bash
+/usr/bin/dbus-run-session /usr/bin/onboard &
+/usr/bin/chromium --app=<HOMEASSISTANTURL>  --noerrdialogs --disable-infobars --kiosk --window-position=0,0 --window-size=<WIDTH>,<HEIGHT>
+
+================================
+
+sudo chmod +x /opt/kiosk/kiosk.sh
+
+================================
+
+sudo nano /lib/systemd/system/kiosk.service
+
+================================
+
+[Unit]
+Description=Home Assistant Kiosk
+Wants=graphical.target
+After=graphical.target
+
+[Service]
+Environment=DISPLAY=:0
+ExecStart=/usr/bin/bash /opt/kiosk/kiosk.sh
+Restart=always
+User=<USER>
+Group=<USER>
+
+[Install]
+WantedBy=graphical.target
+
+
+================================
+
+sudo systemctl enable kiosk
+
+================================
+
+sudo systemctl start kiosk
+
+=================================
